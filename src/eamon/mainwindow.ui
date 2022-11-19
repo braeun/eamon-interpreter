@@ -251,6 +251,8 @@
     </widget>
     <addaction name="actionRun_Disk"/>
     <addaction name="actionRun"/>
+    <addaction name="separator"/>
+    <addaction name="actionInsert_Master_Disk"/>
     <addaction name="actionInsert_Game_Disk"/>
     <addaction name="separator"/>
     <addaction name="menuCharacter_Utilities"/>
@@ -299,6 +301,8 @@
    </attribute>
    <addaction name="actionRun_Disk"/>
    <addaction name="actionRun"/>
+   <addaction name="separator"/>
+   <addaction name="actionInsert_Master_Disk"/>
    <addaction name="actionInsert_Game_Disk"/>
    <addaction name="separator"/>
    <addaction name="actionCharacter_File_Maintenance"/>
@@ -455,6 +459,18 @@
    </property>
    <property name="text">
     <string>Editor...</string>
+   </property>
+  </action>
+  <action name="actionInsert_Master_Disk">
+   <property name="icon">
+    <iconset resource="eamon.qrc">
+     <normaloff>:/resources/icons/user-home.png</normaloff>:/resources/icons/user-home.png</iconset>
+   </property>
+   <property name="text">
+    <string>Insert Master Disk</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert the Eamon master disk</string>
    </property>
   </action>
  </widget>

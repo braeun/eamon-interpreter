@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - application main window                                   *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -100,12 +100,13 @@ private slots:
 
   void on_actionEditor_triggered();
 
+  void on_actionInsert_Master_Disk_triggered();
+
 private:
   void setupGames();
   void copyMainHall(const std::string& gameDisk);
   void run(QString file="hello");
   void hiresPageLoaded();
-  void setScreenMode(int m);
 
   Ui::MainWindow *ui;
   std::unique_ptr<Eamons> eamons;

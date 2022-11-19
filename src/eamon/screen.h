@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - game screen                                               *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -57,6 +57,10 @@ public:
   void setMode(Mode m);
 
   void setPunctuation(bool flag);
+
+  int getCursorColumn() const;
+
+  int getCursorRow() const;
 
 signals:
 

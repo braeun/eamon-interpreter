@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - VM output stream                                          *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -21,10 +21,19 @@
  ********************************************************************************/
 
 #include "outputstream.h"
+#include "../screen.h"
 #include <iostream>
 
-OutputStream::OutputStream(QObject *parent) : QObject(parent)
+OutputStream::OutputStream(Screen* screen, QObject *parent) : QObject(parent),
+  screen(screen)
 {
+  connect(this,&OutputStream::newText,screen,&Screen::print,Qt::QueuedConnection);
+  connect(this,&OutputStream::moveToColumn,screen,&Screen::moveToColumn,Qt::QueuedConnection);
+  connect(this,&OutputStream::moveToRow,screen,&Screen::moveToRow,Qt::QueuedConnection);
+  connect(this,&OutputStream::moveHome,screen,[=](){screen->clear();},Qt::QueuedConnection);
+  connect(this,&OutputStream::printInverse,screen,&Screen::inverse,Qt::QueuedConnection);
+  connect(this,&OutputStream::printNormal,screen,&Screen::normal,Qt::QueuedConnection);
+  connect(this,&OutputStream::changeScreenMode,this,&OutputStream::newScreenMode,Qt::QueuedConnection);
 }
 
 OutputStream::~OutputStream()
@@ -74,5 +83,31 @@ void OutputStream::notifyHiresLoaded()
 
 void OutputStream::flush()
 {
+}
+
+int OutputStream::getCursorColumn() const
+{
+  return screen->getCursorColumn();
+}
+
+int OutputStream::getCursorRow() const
+{
+  return screen->getCursorRow();
+}
+
+
+
+
+void OutputStream::newScreenMode(int m)
+{
+  switch (static_cast<OutputStream::ScreenMode>(m))
+  {
+    case OutputStream::Text:
+      screen->setMode(Screen::Text);
+      break;
+    case OutputStream::Graphics:
+      screen->setMode(Screen::Graphics);
+      break;
+  }
 }
 

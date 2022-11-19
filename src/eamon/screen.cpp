@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - game screen                                               *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -115,12 +115,14 @@ void Screen::clear(bool doupdate)
 void Screen::moveToColumn(int c)
 {
   ccol = c;
+  if (ccol < 0) ccol = 0;
   if (ccol >= ncols) ccol = ncols - 1;
 }
 
 void Screen::moveToRow(int r)
 {
   crow = r;
+  if (crow < 0) crow = 0;
   if (crow >= nrows) crow = nrows - 1;
 }
 
@@ -172,6 +174,19 @@ void Screen::setPunctuation(bool flag)
 {
   punctuation = flag;
 }
+
+int Screen::getCursorColumn() const
+{
+  return ccol;
+}
+
+int Screen::getCursorRow() const
+{
+  return crow;
+}
+
+
+
 
 
 

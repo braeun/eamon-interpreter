@@ -39,5 +39,6 @@
         <file>resources/main_hall/view_remove_characters</file>
         <file>resources/icons/run-build.png</file>
         <file>resources/eamon_dragon.png</file>
+        <file>resources/icons/user-home.png</file>
     </qresource>
 </RCC>

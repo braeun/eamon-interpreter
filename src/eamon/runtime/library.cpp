@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - VM library                                                *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -373,18 +373,21 @@ const std::vector<uint8_t>& Library::getHiresPage() const
 
 
 
-
 void Library::left(Stack& stack) const
 {
-  int32_t l = static_cast<int32_t>(stack.pop().getDouble());
+  int32_t l = stack.pop().getInt();
+  if (l <= 0 || l > 255) throw std::runtime_error("ILLEGAL QUANTITIY");
   std::string s = stack.pop().getString();
   stack.push(s.substr(0,l));
 }
 
 void Library::mid(Stack& stack) const
 {
-  int32_t l = static_cast<int32_t>(round(stack.pop().getDouble()));
-  int32_t p = static_cast<int32_t>(round(stack.pop().getDouble())) - 1; /* counting starts with 1 in BASIC */
+  int32_t l = stack.pop().getDouble();
+  if (l <= 0 || l > 255) throw std::runtime_error("ILLEGAL QUANTITIY");
+  int32_t p = stack.pop().getInt();
+  if (p <= 0 || p > 255) throw std::runtime_error("ILLEGAL QUANTITIY");
+  p--;  /* counting starts with 1 in BASIC */
   std::string s = stack.pop().getString();
   if (p < s.length())
     stack.push(s.substr(p,l));
@@ -394,7 +397,9 @@ void Library::mid(Stack& stack) const
 
 void Library::mid1(Stack& stack) const
 {
-  int32_t p = static_cast<int32_t>(stack.pop().getDouble()) - 1;  /* counting starts with 1 in BASIC */
+  int32_t p = stack.pop().getInt();
+  if (p <= 0 || p > 255) throw std::runtime_error("ILLEGAL QUANTITIY");
+  p--;  /* counting starts with 1 in BASIC */
   std::string s = stack.pop().getString();
   if (p < s.length())
     stack.push(s.substr(p));
@@ -404,7 +409,8 @@ void Library::mid1(Stack& stack) const
 
 void Library::right(Stack& stack) const
 {
-  int32_t l = static_cast<int32_t>(stack.pop().getDouble());
+  int32_t l = stack.pop().getInt();
+  if (l <= 0 || l > 255) throw std::runtime_error("ILLEGAL QUANTITIY");
   std::string s = stack.pop().getString();
   if (l == 0)
     stack.push(std::string(""));
@@ -416,7 +422,7 @@ void Library::right(Stack& stack) const
 
 void Library::chr(Stack &stack) const
 {
-  int32_t a = static_cast<int32_t>(stack.pop().getDouble());
+  int32_t a = stack.pop().getInt();
   char txt[2] = {static_cast<char>(a), 0};
   stack.push(std::string(txt));
 }
@@ -562,15 +568,16 @@ void Library::printExecute(Memory& mem)
 
 void Library::dosRun(std::string file)
 {
-  chain = DiskFile::correctFilename(file);
+  FileSpec spec = DiskFile::getFileSpec(file);
+  chain = spec.name;
   requestTerminate(true);
 }
 
 void Library::dosOpen(std::string file)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
-  size_t pos = file.find_last_of(',');
-  if (pos == file.npos)
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
+  if (spec.recordlength == 0)
   {
     dosClose(file);
     DiskFile f(file);
@@ -578,10 +585,8 @@ void Library::dosOpen(std::string file)
   }
   else
   {
-    std::string r = file.substr(pos+2);
-    file = file.substr(0,pos);
     dosClose(file);
-    DiskFile f(file,std::stod(r));
+    DiskFile f(file,spec.recordlength);
     files.push_back(f);
   }
 }
@@ -596,7 +601,11 @@ void Library::dosClose(std::string file)
   }
   else
   {
-    if (file[0] != '/') file = disk + "/" + DiskFile::correctFilename(file);
+    if (file[0] != '/')
+    {
+      FileSpec spec = DiskFile::getFileSpec(file);
+      file = disk + "/" + spec.name;
+    }
     for (size_t i=0;i<files.size();i++)
     {
       if (files[i].getFilename() == file)
@@ -612,19 +621,13 @@ void Library::dosClose(std::string file)
 
 void Library::dosRead(std::string file)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
-  size_t pos = file.find_last_of(',');
-  std::string r = "";
-  if (pos != file.npos)
-  {
-    r = file.substr(pos+2);
-    file = file.substr(0,pos);
-  }
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
   for (auto& f : files)
   {
     if (f.getFilename() == file)
     {
-      if (!r.empty()) f.setIndex(std::stod(r),true);
+      if (f.isRandomAccess()) f.setIndex(spec.record,true);
       inputfile = &f;
       if (outputfile == inputfile) outputfile = nullptr;
       break;
@@ -634,19 +637,13 @@ void Library::dosRead(std::string file)
 
 void Library::dosWrite(std::string file)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
-  size_t pos = file.find_last_of(',');
-  std::string r = "";
-  if (pos != file.npos)
-  {
-    r = file.substr(pos+2);
-    file = file.substr(0,pos);
-  }
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
   for (auto& f : files)
   {
     if (f.getFilename() == file)
     {
-      if (!r.empty()) f.setIndex(std::stod(r),false);
+      if (f.isRandomAccess()) f.setIndex(spec.record,false);
       f.erase();
       outputfile = &f;
       if (outputfile == inputfile) inputfile = nullptr;
@@ -657,34 +654,31 @@ void Library::dosWrite(std::string file)
 
 void Library::dosDelete(std::string file)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
   dosClose(file);
   std::filesystem::remove(file);
 }
 
 void Library::dosVerify(std::string file)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
   DiskFile::verify(file);
 }
 
 void Library::dosBLoad(std::string file, Memory& mem)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
-  size_t pos = file.find_last_of(',');
-  std::string a = "";
-  if (pos != file.npos)
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
+  if (spec.address > 0)
   {
-    a = file.substr(pos+2);
-    if (a[0] == '$') a = "0x" + a.substr(1);
-    uint32_t addr = std::stod(a);
-    file = file.substr(0,pos);
-    if (addr == 0x2000)
+    if (spec.address == 0x2000)
     {
       hiresPage1 = DiskFile::readBinaryFile(file);
       os->notifyHiresLoaded();
     }
-    else if (addr == 0x4000)
+    else if (spec.address == 0x4000)
     {
       hiresPage2 = DiskFile::readBinaryFile(file);
       os->notifyHiresLoaded();
@@ -692,7 +686,7 @@ void Library::dosBLoad(std::string file, Memory& mem)
   }
   else
   {
-    uint32_t addr;
+    uint32_t addr = 0;
     std::ifstream s(file);
     if (s.is_open() && !s.fail())
     {
@@ -706,20 +700,9 @@ void Library::dosBLoad(std::string file, Memory& mem)
 
 void Library::dosBSave(std::string file, Memory& mem)
 {
-  file = disk + "/" + DiskFile::correctFilename(file);
-  uint32_t addr = 0;
-  size_t pos;
-  while ((pos = file.find_last_of(',')) != file.npos)
-  {
-    if (file[pos+1] == 'a')
-    {
-      std::string a = file.substr(pos+2);
-      if (a[0] == '$') a = "0x" + a.substr(1);
-      addr = std::stod(a);
-    }
-    file = file.substr(0,pos);
-  }
-  if (addr == 0x69)
+  FileSpec spec = DiskFile::getFileSpec(file);
+  file = disk + "/" + spec.name;
+  if (spec.address == 0x69)
   {
     saveMemory(file,mem);
   }
@@ -1018,6 +1001,12 @@ void Library::peek(Stack &stack) const
   int16_t addr = static_cast<int16_t>(stack.pop().getInt());
   switch (addr)
   {
+    case 36:
+      stack.push(os->getCursorColumn());
+      break;
+    case 37:
+      stack.push(os->getCursorRow());
+      break;
     case 78:  /* used for seeding rnd() */
       stack.push(static_cast<int32_t>((time(nullptr)&0xFF00)>>8));
       break;

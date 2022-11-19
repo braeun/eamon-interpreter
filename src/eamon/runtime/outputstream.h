@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - VM output stream                                          *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -25,6 +25,8 @@
 
 #include <QObject>
 
+class Screen;
+
 class OutputStream : public QObject
 {
   Q_OBJECT
@@ -32,26 +34,30 @@ public:
 
   enum ScreenMode { Text, Graphics };
 
-  explicit OutputStream(QObject *parent=nullptr);
-  virtual ~OutputStream();
+  explicit OutputStream(Screen* screen, QObject *parent=nullptr);
+  ~OutputStream();
 
-  virtual void write(const std::string &s);
+  void write(const std::string &s);
 
-  virtual void gotoColumn(int c);
+  void gotoColumn(int c);
 
-  virtual void gotoRow(int r);
+  void gotoRow(int r);
 
-  virtual void home();
+  void home();
 
-  virtual void inverse();
+  void inverse();
 
-  virtual void normal();
+  void normal();
 
-  virtual void setScreenMode(ScreenMode m);
+  void setScreenMode(ScreenMode m);
 
-  virtual void notifyHiresLoaded();
+  void notifyHiresLoaded();
 
-  virtual void flush();
+  void flush();
+
+  int getCursorColumn() const;
+
+  int getCursorRow() const;
 
 signals:
   void newText(const QString& s);
@@ -62,6 +68,11 @@ signals:
   void printNormal();
   void changeScreenMode(int m);
   void hiresLoaded();
+
+private:
+  void newScreenMode(int m);
+
+  Screen* screen;
 
 };
 

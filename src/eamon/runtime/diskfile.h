@@ -26,6 +26,17 @@
 #include <string>
 #include <vector>
 
+struct FileSpec {
+  std::string name = "";
+  int recordlength = 0;
+  int slot = 6;
+  int drive = 1;
+  int volume = 0;
+  int record = 0;
+  int begin = 0;
+  int address = 0;
+};
+
 class DiskFile
 {
 public:
@@ -34,6 +45,8 @@ public:
   ~DiskFile();
 
   const std::string& getFilename() const;
+
+  bool isRandomAccess() const;
 
   /**
    * @brief Set index for read/write operations.
@@ -59,6 +72,7 @@ public:
 
   static std::string correctFilename(std::string file);
 
+  static FileSpec getFileSpec(std::string file);
 
 private:
   void readSequential();

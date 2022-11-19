@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - application main window                                   *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2022-11-19                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -57,15 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->setupUi(this);
   QSettings settings;
   compiler = std::make_shared<Compiler>();
-  os = std::make_shared<OutputStream>();
-  connect(os.get(),&OutputStream::newText,this,&MainWindow::handleNewText,Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::moveToColumn,ui->screenWidget,&Screen::moveToColumn,Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::moveToRow,ui->screenWidget,&Screen::moveToRow,Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::moveHome,ui->screenWidget,[=](){ui->screenWidget->clear();},Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::printInverse,ui->screenWidget,&Screen::inverse,Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::printNormal,ui->screenWidget,&Screen::normal,Qt::QueuedConnection);
+  os = std::make_shared<OutputStream>(ui->screenWidget);
   connect(os.get(),&OutputStream::hiresLoaded,this,&MainWindow::hiresPageLoaded,Qt::QueuedConnection);
-  connect(os.get(),&OutputStream::changeScreenMode,this,&MainWindow::setScreenMode,Qt::QueuedConnection);
   is = std::make_shared<InputStream>();
   vm = std::make_shared<VM>(is,os);
   vmthread = new VMThread(vm);
@@ -169,7 +162,12 @@ void MainWindow::copyMainHall(const std::string& gameDisk)
     for (const QFileInfo& info : srcdir.entryInfoList())
     {
       qDebug() << info.absoluteFilePath();
-      QFile::copy(info.absoluteFilePath(),destdir.absoluteFilePath(info.fileName()));
+      QString dest = destdir.absoluteFilePath(info.fileName());
+      QFile::copy(info.absoluteFilePath(),dest);
+      QFile::setPermissions(dest,
+                            QFileDevice::ReadOwner|QFileDevice::WriteOwner|
+                            QFileDevice::ReadGroup|QFileDevice::WriteGroup|
+                            QFileDevice::ReadOther);
     }
   }
   else if (!ExtractionUtils::extractDisk(":/resources/D3_001.DSK",QString::fromStdString(gameDisk)))
@@ -218,18 +216,6 @@ void MainWindow::hiresPageLoaded()
   ui->screenWidget->setImage(vm->getHiresPage());
 }
 
-void MainWindow::setScreenMode(int m)
-{
-  switch (static_cast<OutputStream::ScreenMode>(m))
-  {
-    case OutputStream::Text:
-      ui->screenWidget->setMode(Screen::Text);
-      break;
-    case OutputStream::Graphics:
-      ui->screenWidget->setMode(Screen::Graphics);
-      break;
-  }
-}
 
 
 
@@ -566,4 +552,12 @@ void MainWindow::on_actionEditor_triggered()
   }
   editor->show();
   editor->raise();
+}
+
+void MainWindow::on_actionInsert_Master_Disk_triggered()
+{
+  QString disk = QString::fromStdString(eamons->getMainHall());
+  currentDisk = QDir(disk);
+  vm->setDisk(currentDisk.absolutePath().toStdString());
+  ui->currentDiskLabel->setText(currentDisk.dirName());
 }

@@ -64,6 +64,11 @@ const std::string& DiskFile::getFilename() const
   return filename;
 }
 
+bool DiskFile::isRandomAccess() const
+{
+  return recordlength > 0;
+}
+
 void DiskFile::setIndex(uint32_t i, bool read)
 {
   errcode = 0;
@@ -184,6 +189,58 @@ std::string DiskFile::correctFilename(std::string file)
   std::replace(file.begin(),file.end(),'\'','_');
   std::transform(file.begin(),file.end(),file.begin(),::tolower);
   return file;
+}
+
+FileSpec DiskFile::getFileSpec(std::string file)
+{
+  FileSpec spec;
+  size_t pos;
+  std::string r = "";
+  while ((pos = file.find_last_of(',')) != std::string::npos)
+  {
+    if (tolower(file[pos+1]) == 'l')
+    {
+      spec.recordlength = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 's')
+    {
+      spec.slot = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 'd')
+    {
+      spec.drive = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 'v')
+    {
+      spec.volume = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 'r')
+    {
+      spec.record = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 'b')
+    {
+      spec.begin = std::stoi(file.substr(pos+2));
+      file = file.substr(0,pos);
+    }
+    else if (tolower(file[pos+1]) == 'a')
+    {
+      if (r[0] == '$') r = "0x" + r.substr(1);
+      spec.address = std::stoi(r);
+      file = file.substr(0,pos);
+    }
+    else
+    {
+      break;
+    }
+  }
+  spec.name = correctFilename(file);
+  return spec;
 }
 
 
