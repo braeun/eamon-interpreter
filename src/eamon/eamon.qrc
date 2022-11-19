@@ -1,0 +1,43 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/icons/configure.png</file>
+        <file>resources/icons/run.png</file>
+        <file>resources/fonts/PrintChar21.ttf</file>
+        <file>resources/icons/page-3sides.png</file>
+        <file>resources/icons/user-group-properties.png</file>
+        <file>resources/icons/document-save.png</file>
+        <file>resources/D3_001.DSK</file>
+        <file>resources/about.png</file>
+        <file>resources/icons/drive-optical.png</file>
+        <file>resources/icons/camera-photo.png</file>
+        <file>resources/icons/go-home.png</file>
+        <file>resources/icons/document-open.png</file>
+        <file>resources/icons/document-save-as.png</file>
+        <file>resources/icons/accessories-text-editor.png</file>
+        <file>resources/icons/archive-extract.png</file>
+        <file>resources/main_hall/characters</file>
+        <file>resources/main_hall/display_characters</file>
+        <file>resources/main_hall/eamon.artifacts</file>
+        <file>resources/main_hall/eamon.desc</file>
+        <file>resources/main_hall/eamon.monsters</file>
+        <file>resources/main_hall/eamon.name</file>
+        <file>resources/main_hall/eamon.pic</file>
+        <file>resources/main_hall/eamon.room_names</file>
+        <file>resources/main_hall/eamon.rooms</file>
+        <file>resources/main_hall/eamon_character_file_maint</file>
+        <file>resources/main_hall/hello</file>
+        <file>resources/main_hall/last_update__2_11_90</file>
+        <file>resources/main_hall/main_hall</file>
+        <file>resources/main_hall/new_characters</file>
+        <file>resources/main_hall/player_s_manual</file>
+        <file>resources/main_hall/print_player_s_manual</file>
+        <file>resources/main_hall/re-initialize_characters</file>
+        <file>resources/main_hall/resurrect_character</file>
+        <file>resources/main_hall/snappy</file>
+        <file>resources/main_hall/the_beginners_cave</file>
+        <file>resources/main_hall/the_wonderful_world_of_eamon</file>
+        <file>resources/main_hall/view_remove_characters</file>
+        <file>resources/icons/run-build.png</file>
+        <file>resources/eamon_dragon.png</file>
+    </qresource>
+</RCC>
