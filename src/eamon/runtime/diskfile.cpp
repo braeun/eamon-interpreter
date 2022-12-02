@@ -195,7 +195,6 @@ FileSpec DiskFile::getFileSpec(std::string file)
 {
   FileSpec spec;
   size_t pos;
-  std::string r = "";
   while ((pos = file.find_last_of(',')) != std::string::npos)
   {
     if (tolower(file[pos+1]) == 'l')
@@ -230,8 +229,9 @@ FileSpec DiskFile::getFileSpec(std::string file)
     }
     else if (tolower(file[pos+1]) == 'a')
     {
+      std::string r = file.substr(pos+2);
       if (r[0] == '$') r = "0x" + r.substr(1);
-      spec.address = std::stoi(r);
+      spec.address = std::stoi(r,nullptr,0);
       file = file.substr(0,pos);
     }
     else
