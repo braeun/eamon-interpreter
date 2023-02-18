@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - preferences dialog                                        *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2023-02-17                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -57,6 +57,8 @@ void OptionsDialog::commitFields(QSettings &settings)
   QFont font;
   font = ui->fontBox->currentFont();
   font.setPointSize(ui->fontSizeBox->currentText().toInt());
+  settings.setValue(SETTING_SCREEN_WIDTH,ui->widthBox->value());
+  settings.setValue(SETTING_SCREEN_HEIGHT,ui->heightBox->value());
   settings.setValue(SETTING_SCREEN_FONT,font.toString());
   settings.setValue(SETTING_SCREEN_LOWERCASE,ui->lowerCaseBox->isChecked());
   settings.setValue(SETTING_SCREEN_CAPITALIZE,ui->capitalizeBox->isChecked());
@@ -77,6 +79,8 @@ void OptionsDialog::updateFields(const QSettings &settings)
 {
   QString s;
 
+  ui->widthBox->setValue(settings.value(SETTING_SCREEN_WIDTH,SETTING_VALUE_SCREEN_WIDTH).toInt());
+  ui->heightBox->setValue(settings.value(SETTING_SCREEN_HEIGHT,SETTING_VALUE_SCREEN_HEIGHT).toInt());
   s = settings.value(SETTING_SCREEN_FONT,SETTING_VALUE_SCREEN_FONT).toString();
   if (!s.isEmpty())
   {

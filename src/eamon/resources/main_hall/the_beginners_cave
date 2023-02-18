@@ -272,7 +272,7 @@
 22180  IF A2  THEN MD%(0,8) = MD%(0,8) +A2:EA = EA -A2 *10: IF A2 = 3  THEN MD%(0,8) = MD%(0,8) +2:EA = EA -30
 22190 MD%(0,10) = (EA +AE) *( -EA >AE) +WO%(W2) +WA%(WT%(W2)) +2 *MD%(0,2):MD%(0,7) = 0:MD%(0,9) = NA:MD%(0,11) = WD%(W2):MD%(0,12) = WS%(W2)
 22200 MD%(0,14) = 1
-22210  READ NC: DIM C$(NC): FOR C = 1 TO NC: READ C$(C): NEXT 
+22210  READ NC: DIM C$(NC): FOR C = 1 TO NC: READ C$(C): NEXT
 22220  FOR S = 1 TO 4:S2%(S) = SA%(S): NEXT 
 22230  DIM V%(26):ROOM = 1
 22235  FOR A = 1 TO NA -1: IF AN$(NA) = AN$(A)  THEN AN$(A) = AN$(A) +"#": GOTO 22235

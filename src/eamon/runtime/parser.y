@@ -105,19 +105,19 @@ assignment: number_assignment
   ;
 
 number_assignment:
-  SYMBOL EQU expr { compiler.store($1,@1); }
+  SYMBOL EQU expr { compiler.store($1,@1,false,true); }
   | SYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); }
-    EQU expr { compiler.store($1,@1); }
+    EQU expr { compiler.store($1,@1,true,true); }
   | SYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); }
-    EQU expr { compiler.store($1,@1); }
+    EQU expr { compiler.store($1,@1,true,true); }
   ;
 
 string_assignment:
-    STRINGSYMBOL EQU stringexpr { compiler.store($1,@1); }
+    STRINGSYMBOL EQU stringexpr { compiler.store($1,@1,false,true); }
     | STRINGSYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); }
-      EQU stringexpr { compiler.store($1,@1); }
+      EQU stringexpr { compiler.store($1,@1,true,true); }
     | STRINGSYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); }
-      EQU stringexpr { compiler.store($1,@1); }
+      EQU stringexpr { compiler.store($1,@1,true,true); }
   ;
 
 statement: /* empty */
@@ -203,7 +203,7 @@ function: ABS '(' expr ')' { compiler.callFunction("abs",1,@1); }
 
 expr:     NUMBER { compiler.createPush($1); }
         | INTEGER { compiler.createPush($1); }
-        | SYMBOL { compiler.recall($1,@1); }
+        | SYMBOL { compiler.recall($1,@1,false); }
         | expr '+' expr { compiler.createOperator("+",@1); }
         | expr '-' expr { compiler.createOperator("-",@1); }
         | expr '*' expr { compiler.createOperator("*",@1); }
@@ -239,7 +239,7 @@ stringfunction: CHR '(' expr ')' { compiler.callFunction("chr$",1,@1); }
           ;
 
 stringexpr: STRING { compiler.createPush($1); }
-  | STRINGSYMBOL { compiler.recall($1,@1); }
+  | STRINGSYMBOL { compiler.recall($1,@1,false); }
   | stringarray
   | stringexpr '+' stringexpr { compiler.createOperator("+",@1); }
   | stringfunction
@@ -247,13 +247,13 @@ stringexpr: STRING { compiler.createPush($1); }
   ;
 
 array:
-  SYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); compiler.recall($1,@1); }
-  | SYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); compiler.recall($1,@1); }
+  SYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); compiler.recall($1,@1,true); }
+  | SYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); compiler.recall($1,@1,true); }
   ;
 
 stringarray:
-  STRINGSYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); compiler.recall($1,@1); }
-  | STRINGSYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); compiler.recall($1,@1); }
+  STRINGSYMBOL '(' expr ')' { compiler.createArrayOffset($1,1,@1); compiler.recall($1,@1,true); }
+  | STRINGSYMBOL '(' expr ',' expr ')' { compiler.createArrayOffset($1,2,@1); compiler.recall($1,@1,true); }
   ;
 
 dim:
@@ -318,8 +318,8 @@ inputlist:
       ;
 
 prompt: /* possible empty { compiler.createPush("?"); compiler.callPrint(false); } */
-      | STRING ',' { compiler.createPush($1); compiler.callPrint(false); }
-      | STRING ';' { compiler.createPush($1); compiler.callPrint(false); }
+      | STRING ',' { compiler.createPush($1); compiler.callPrompt(); }
+      | STRING ';' { compiler.createPush($1); compiler.callPrompt(); }
       ;
 
 read:  SYMBOL { compiler.read($1,Type::doubleType); }
@@ -343,7 +343,7 @@ gosublist: INTEGER { compiler.addOnGosub($1,@1); }
   | gosublist ',' INTEGER { compiler.addOnGosub($3,@3); }
   ;
 
-for_loop: FOR SYMBOL EQU expr { compiler.store($2,@2); compiler.startFor($2,@2); }
+for_loop: FOR SYMBOL EQU expr { compiler.store($2,@2,false,true); compiler.startFor($2,@2); }
   TO expr { compiler.compareFor(@2); }
   step_part { compiler.stepFor(@2); }
   ;

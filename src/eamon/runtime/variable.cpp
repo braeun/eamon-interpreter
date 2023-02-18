@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - variable object                                           *
  *                                                                              *
- * modified: 2022-11-17                                                         *
+ * modified: 2023-02-17                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -26,15 +26,15 @@
 #include <algorithm>
 
 Variable::Variable():
-  type(Type::undefinedType),
   name(""),
+  type(Type::undefinedType),
   addr(0)
 {
 }
 
 Variable::Variable(const std::string& name, Type type, uint32_t addr):
-  type(type),
   name(name),
+  type(type),
   addr(addr)
 {
 }
@@ -96,13 +96,13 @@ void VariableList::addVariable(Variable& v)
   list.push_back(v);
 }
 
-const Variable* VariableList::findVariable(const std::string& name)
+Variable VariableList::findVariable(const std::string& name)
 {
   for (const Variable &v : list)
   {
-    if (v.getName() == name) return &v;
+    if (v.getName() == name) return v;
   }
-  return nullptr;
+  return Variable();
 }
 
 uint32_t VariableList::getNumericBlockSize() const
@@ -115,7 +115,7 @@ void VariableList::reverse()
   std::reverse(list.begin(),list.end());
 }
 
-const Variable& VariableList::operator[](uint32_t index) const
+Variable VariableList::operator[](uint32_t index) const
 {
   return list[index];
 }

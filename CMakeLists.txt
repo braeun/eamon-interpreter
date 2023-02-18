@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(EamonInterpreter VERSION 0.3.0 LANGUAGES CXX)
+project(EamonInterpreter VERSION 0.3.1 LANGUAGES CXX)
 
 if(CMAKE_SOURCE_DIR MATCHES CMAKE_BINARY_DIR)
       message(STATUS "Please do an out-of-tree build:")

@@ -880,6 +880,7 @@ const char* Library::printfNumber(std::ostream* printstream, const char* c, std:
 
 void Library::input(Stack &stack) const
 {
+  bool prompt = stack.pop().getInt() != 0;
   int32_t narg = stack.pop().getInt();
   if (narg == 0)
   {
@@ -916,7 +917,7 @@ void Library::input(Stack &stack) const
       {
         if (os)
         {
-          os->write(fields.empty()?"":"??");
+          os->write(fields.empty()?(prompt?"":"?"):"??");
           os->flush();
         }
         line = is->readLine();

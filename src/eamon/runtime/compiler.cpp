@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - compiler                                                  *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2023-02-17                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -33,6 +33,8 @@
 #define START_INTERNAL_LABEL_COUNTER 0x10000
 
 const char* Compiler::readIndexVarName = "__readIndex%";
+
+static const char arrayIndicator = '(';
 
 Compiler::Compiler():
   scanner(nullptr),
@@ -122,8 +124,8 @@ void Compiler::createLabel(int lineno, const yy::Parser::location_type &l)
 void Compiler::createDimVar(std::string name, int ndim, const yy::Parser::location_type &l)
 {
 //  std::cout << name << " " << std::endl;
-  name = normalizeVar(name);// + "_";
-  const Variable* v = data.globalVariables.findVariable(name);
+  name = normalizeVar(name) + arrayIndicator;
+  Variable v = data.globalVariables.findVariable(name);
   if (!v)
   {
     Variable nv(name,getType(name).getArrayType());
@@ -151,9 +153,9 @@ void Compiler::createDimVar(std::string name, int ndim, const yy::Parser::locati
     createPush(1);
     code->push_back(COp(OP_ARIADD));
     code->push_back(COp(OP_DUP,Type::int32Type));
-    const Variable* v = data.globalVariables.findVariable(name+"dim2");
-    COp cop(OP_STO,v->getType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    Variable v = data.globalVariables.findVariable(name+"dim2");
+    COp cop(OP_STO,v.getType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
     code->push_back(COp(OP_SWAP,Type::int32Type));
   }
@@ -161,16 +163,16 @@ void Compiler::createDimVar(std::string name, int ndim, const yy::Parser::locati
   code->push_back(COp(OP_ARIADD));
   code->push_back(COp(OP_DUP,Type::int32Type));
   v = data.globalVariables.findVariable(name+"dim1");
-  COp cop(OP_STO,v->getType());
-  cop.setParameter(static_cast<int32_t>(v->getAddress()));
+  COp cop(OP_STO,v.getType());
+  cop.setParameter(static_cast<int32_t>(v.getAddress()));
   code->push_back(cop);
   if (ndim == 2)
   {
     code->push_back(COp(OP_ARIMUL));
   }
   v = data.globalVariables.findVariable(name);
-  cop = COp(OP_RSZ,v->getType().getScalarType());
-  cop.setParameter(static_cast<int32_t>(v->getAddress()));
+  cop = COp(OP_RSZ,v.getType().getScalarType());
+  cop.setParameter(static_cast<int32_t>(v.getAddress()));
   code->push_back(cop);
 }
 
@@ -351,13 +353,10 @@ void Compiler::createNot()
 void Compiler::createArrayOffset(std::string name, int32_t ndim, const yy::Parser::location_type &l)
 {
   name = normalizeVar(name);
-  std::string var = name;
-//  /* we have to distinguish array type variables from scalar variables of same name */
-//  if (type.isArrayType()) var += "_";
-  const Variable* v = nullptr;
+  std::string var = name + arrayIndicator;
 //  if (userFunction) v = userFunction->f.localvars.findVariable(var);
-  if (v == nullptr) v = data.globalVariables.findVariable(var);
-  if (v == nullptr)
+  Variable v = data.globalVariables.findVariable(var);
+  if (!v)
   {
     Variable nv(var,getType(var).getArrayType());
     std::vector<uint32_t> dims{static_cast<uint32_t>(11)};
@@ -377,11 +376,11 @@ void Compiler::createArrayOffset(std::string name, int32_t ndim, const yy::Parse
     COp cop(OP_PUSH,Type::int32Type);
     cop.setParameter(size);
     initcode.push_back(cop);
-    cop = COp(OP_RSZ,v->getType().getScalarType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    cop = COp(OP_RSZ,v.getType().getScalarType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     initcode.push_back(cop);
   }
-  else if (!v->getType().isArrayType())
+  else if (!v.getType().isArrayType())
   {
 //    parser->error(yy::Parser::syntax_error(l,"Variable '"+name+"' is already used as a scalar variable"));
     throw yy::Parser::syntax_error(l,"Variable '"+name+"' is already used as a scalar variable");
@@ -390,14 +389,14 @@ void Compiler::createArrayOffset(std::string name, int32_t ndim, const yy::Parse
   if (ndim == 2)
   {
     v = data.globalVariables.findVariable(var+"dim1"); /* column major memory */
-    COp cop(OP_RCL,v->getType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    COp cop(OP_RCL,v.getType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
-    typeStack->push_back(v->getType());
+    typeStack->push_back(v.getType());
     createOperator("*",l);
     createOperator("+",l);
   }
-  Type t1 = typeStack->back();
+  typeStack->back();
   if (typeStack->back() != Type::int32Type)
   {
     code->push_back(COp(OP_CAST,Type::int32Type));
@@ -412,15 +411,15 @@ void Compiler::createInputArrayOffset(int32_t ndim, const yy::Parser::location_t
   createArrayOffset(id.var,ndim,l);
 }
 
-void Compiler::store(std::string var, const yy::Parser::location_type &l, bool swap)
+void Compiler::store(std::string var, const yy::Parser::location_type &l, bool array, bool swap)
 {
-  const Variable* v = findAndCreateVar(var);
-  store(v,l,swap);
+  Variable v = findAndCreateVar(var,array,true);
+  store(v,l,array,swap);
 }
 
-void Compiler::store(const Variable *v, const yy::Parser::location_type &l, bool swap)
+void Compiler::store(const Variable& v, const yy::Parser::location_type &l, bool array, bool swap)
 {
-  if (v->getType().isArrayType())
+  if (v.getType().isArrayType())
   {
     if (typeStack->size() < 2)
     {
@@ -439,8 +438,8 @@ void Compiler::store(const Variable *v, const yy::Parser::location_type &l, bool
       t = typeStack->back(); /* type of actual data to store */
       typeStack->pop_back();
     }
-    COp cop(OP_STOI,v->getType().getScalarType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    COp cop(OP_STOI,v.getType().getScalarType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
   }
   else
@@ -451,38 +450,38 @@ void Compiler::store(const Variable *v, const yy::Parser::location_type &l, bool
     }
     Type t = typeStack->back();
     typeStack->pop_back();
-    COp cop(OP_STO,v->getType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    COp cop(OP_STO,v.getType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
   }
 }
 
-void Compiler::recall(std::string var, const yy::Parser::location_type &l)
+void Compiler::recall(std::string var, const yy::Parser::location_type &l, bool array)
 {
-  const Variable* v = findAndCreateVar(var);
+  Variable v = findAndCreateVar(var,array,true);
   recall(v,l);
 }
 
-void Compiler::recall(const Variable *v, const yy::Parser::location_type &l)
+void Compiler::recall(const Variable& v, const yy::Parser::location_type &l)
 {
-  if (v->getType().isArrayType())
+  if (v.getType().isArrayType())
   {
     if (typeStack->empty())
     {
       throw yy::Parser::syntax_error(l,"Stack underflow in recall: missing array index?");
     }
     typeStack->pop_back();
-    COp cop(OP_RCLI,v->getType().getScalarType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    COp cop(OP_RCLI,v.getType().getScalarType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
-    typeStack->push_back(v->getType().getScalarType());
+    typeStack->push_back(v.getType().getScalarType());
   }
   else
   {
-    COp cop(OP_RCL,v->getType());
-    cop.setParameter(static_cast<int32_t>(v->getAddress()));
+    COp cop(OP_RCL,v.getType());
+    cop.setParameter(static_cast<int32_t>(v.getAddress()));
     code->push_back(cop);
-    typeStack->push_back(v->getType());
+    typeStack->push_back(v.getType());
   }
 }
 
@@ -533,6 +532,12 @@ void Compiler::callPrintF(bool nl)
   }
 }
 
+void Compiler::callPrompt()
+{
+  callPrint(false);
+  prompt = true;
+}
+
 void Compiler::startInput()
 {
 //  createPush("? ");
@@ -570,6 +575,10 @@ void Compiler::endInput()
   COp cop = COp(OP_PUSH,Type::int32Type);
   cop.setParameter(static_cast<int32_t>(inputData.size()));
   code->push_back(cop);
+  cop = COp(OP_PUSH,Type::int32Type);
+  cop.setParameter(static_cast<int32_t>(prompt));
+  code->push_back(cop);
+  prompt = false;
   Type t = callFunction("input",yy::Parser::location_type());
   code->push_back(COp(OP_POP,t)); /* discard return value */
   std::reverse(inputData.begin(),inputData.end());
@@ -581,7 +590,7 @@ void Compiler::endInput()
       code->insert(code->end(),id.code.begin(),id.code.end());
       typeStack->push_back(id.typeStack.back());
     }
-    store(id.var,yy::Parser::location_type(),false);
+    store(id.var,yy::Parser::location_type(),id.type.isArrayType(),false);
   }
   inputData.clear();
 }
@@ -604,7 +613,7 @@ void Compiler::endGet()
     code->insert(code->end(),id.code.begin(),id.code.end());
     typeStack->push_back(id.typeStack.back());
   }
-  store(id.var,yy::Parser::location_type(),false);
+  store(id.var,yy::Parser::location_type(),id.type.isArrayType(),false);
   inputData.clear();
 }
 
@@ -623,10 +632,10 @@ void Compiler::compareFor(const yy::Parser::location_type &l)
 
 void Compiler::stepFor(const yy::Parser::location_type &l)
 {
-  const Variable* v = findAndCreateVar(forLoop.back().var);
+  Variable v = findAndCreateVar(forLoop.back().var,false,true);
   forLoop.pop_back();
   COp op(OP_FOR);
-  op.setParameter(static_cast<int32_t>(v->getAddress()));
+  op.setParameter(static_cast<int32_t>(v.getAddress()));
   code->push_back(op);
 }
 
@@ -735,8 +744,8 @@ void Compiler::endOnGoto(const yy::Parser::location_type &l)
 void Compiler::restore()
 {
   createPush(0);
-  const Variable* readIndexVar = data.globalVariables.findVariable(readIndexVarName);
-  store(readIndexVar,yy::Parser::location_type());
+  Variable readIndexVar = data.globalVariables.findVariable(readIndexVarName);
+  store(readIndexVar,yy::Parser::location_type(),false,true);
 }
 
 void Compiler::createData(double v)
@@ -759,22 +768,21 @@ void Compiler::read(std::string var, Type type)
 {
   var = normalizeVar(var);
   /* push the current read index */
-  const Variable* readIndexVar = data.globalVariables.findVariable(readIndexVarName);
+  Variable readIndexVar = data.globalVariables.findVariable(readIndexVarName);
   recall(readIndexVar,yy::Parser::location_type());
   typeStack->pop_back();
   /* push the requested variable type */
   COp cop(OP_PUSH,Type::int32Type);
   cop.setParameter(static_cast<int32_t>(type.getScalarType().toInt()));
   code->push_back(cop);
-  /* read the data leavin only the data on the stack */
+  /* read the data leaving only the data on the stack */
   callFunction("read",yy::Parser::location_type());
   /* store the data in the variable */
   typeStack->push_back(type.getScalarType());
-  store(var,yy::Parser::location_type());
+  store(var,yy::Parser::location_type(),type.isArrayType(),true);
   /* increment the readIndexVar */
-  readIndexVar = data.globalVariables.findVariable(readIndexVarName);
-  cop = COp(OP_INC,readIndexVar->getType());
-  cop.setParameter(static_cast<int32_t>(readIndexVar->getAddress()));
+  cop = COp(OP_INC,readIndexVar.getType());
+  cop.setParameter(static_cast<int32_t>(readIndexVar.getAddress()));
   code->push_back(cop);
 }
 
@@ -810,9 +818,9 @@ void Compiler::startUserFunction(const std::string& name, std::string& var, cons
   COp cop(OP_SWAP);
   code->push_back(cop);
   /* store argument in variable */
-  const Variable* v = findAndCreateVar(userFunction->f.var);
-  cop = COp(OP_STO,v->getType());
-  cop.setParameter(static_cast<int32_t>(v->getAddress()));
+  Variable v = findAndCreateVar(userFunction->f.var,false,true);
+  cop = COp(OP_STO,v.getType());
+  cop.setParameter(static_cast<int32_t>(v.getAddress()));
   code->push_back(cop);
 }
 
@@ -923,18 +931,18 @@ Executable* Compiler::compile_helper(std::istream& stream)
    return exe;
 }
 
-const Variable* Compiler::findAndCreateVar(std::string var, bool normalize)
+Variable Compiler::findAndCreateVar(std::string var, bool array, bool normalize)
 {
 //  std::cout << var << " " << std::endl;
   if (normalize) var = normalizeVar(var);
-//  /* we have to distinguish array type variables from scalar variables of same name */
-//  if (type.isArrayType()) var += "_";
+  /* we have to distinguish array type variables from scalar variables of same name */
+  if (array) var += arrayIndicator;
   if (userFunction && var == userFunction->f.var)
   {
     var = "__" + userFunction->f.name + "_" + var;
   }
-  const Variable* v = data.globalVariables.findVariable(var);
-  if (v == nullptr)
+  Variable v = data.globalVariables.findVariable(var);
+  if (!v)
   {
     Variable nv(var,getType(var));
     data.globalVariables.addVariable(nv);

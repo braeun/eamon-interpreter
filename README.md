@@ -35,3 +35,9 @@ Eamon Interpreter uses some third party code:
 The code of the first eamon game (beginners cave and main hall) is included
 in the source tree. I am not really sure about the license but it states on
 the game image that non-commercial distribution is welcome.
+
+
+## Thanks
+
+* Robert Green, main author of AppleCommander, and contributors for the clean 
+  Java code providing much insight into the Dos 3.3 disk and file structure.

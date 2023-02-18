@@ -1,4 +1,26 @@
-﻿#ifndef DEFINES_H
+﻿/********************************************************************************
+ *                                                                              *
+ * EamonInterpreter - defines for settings                                      *
+ *                                                                              *
+ * modified: 2023-02-17                                                         *
+ *                                                                              *
+ ********************************************************************************
+ * Copyright (C) Harald Braeuning                                               *
+ ********************************************************************************
+ * This file is part of EamonInterpreter.                                       *
+ * EamonInterpreter is free software: you can redistribute it and/or modify it  *
+ * under the terms of the GNU General Public License as published by the Free   *
+ * Software Foundation, either version 3 of the License, or (at your option)    *
+ * any later version.                                                           *
+ * EamonInterpreter is distributed in the hope that it will be useful, but      *
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY   *
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for  *
+ * more details.                                                                *
+ * You should have received a copy of the GNU General Public License along with *
+ * EamonInterpreter. If not, see <https://www.gnu.org/licenses/>.               *
+ ********************************************************************************/
+
+#ifndef DEFINES_H
 #define DEFINES_H
 
 #include <QDir>
@@ -26,6 +48,8 @@
 /*
  * Settings IDs for game screen configuration
  */
+#define SETTING_SCREEN_WIDTH "screen/width"
+#define SETTING_SCREEN_HEIGHT "screen/height"
 #define SETTING_SCREEN_FONT "screen/font"
 #define SETTING_SCREEN_LOWERCASE "screen/lowercase"
 #define SETTING_SCREEN_CAPITALIZE "screen/capitalize"
@@ -35,6 +59,8 @@
 /*
  * Settings values for game screen configuration
  */
+#define SETTING_VALUE_SCREEN_WIDTH 40
+#define SETTING_VALUE_SCREEN_HEIGHT 24
 #define SETTING_VALUE_SCREEN_FONT "PrintChar21,12,-1,5,50,0,0,0,0,0"
 #define SETTING_VALUE_SCREEN_LOWERCASE false
 #define SETTING_VALUE_SCREEN_CAPITALIZE true

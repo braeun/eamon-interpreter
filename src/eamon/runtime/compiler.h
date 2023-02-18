@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - compiler                                                  *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2023-02-17                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -119,15 +119,17 @@ public:
    * @param l
    * @param swap false if index to array  variable is already on top of stack
    */
-  void store(std::string var, const yy::Parser::location_type &l, bool swap=true);
+  void store(std::string var, const yy::Parser::location_type &l, bool array, bool swap);
 
-  void recall(std::string var, const yy::Parser::location_type &l);
+  void recall(std::string var, const yy::Parser::location_type &l, bool array);
 
   void callPrint(bool nl);
 
   void callPrintF(bool nl);
 
   void callPrintTab();
+
+  void callPrompt();
 
   void startInput();
 
@@ -220,11 +222,11 @@ private:
 
   void checkLine(const yy::Parser::location_type &l);
   Executable* compile_helper(std::istream &stream);
-  const Variable* findAndCreateVar(std::string name, bool normalize=true);
+  Variable findAndCreateVar(std::string name, bool array, bool normalize);
   Type callFunction(const std::string& fn, const yy::Parser::location_type &l);
   std::string normalizeVar(std::string var);
-  void store(const Variable* var, const yy::Parser::location_type &l, bool swap=true);
-  void recall(const Variable* var, const yy::Parser::location_type &l);
+  void store(const Variable& var, const yy::Parser::location_type &l, bool array, bool swap);
+  void recall(const Variable& var, const yy::Parser::location_type &l);
   Type getType(const std::string& var);
 
 
@@ -249,6 +251,8 @@ private:
   int32_t onGoLabel;
   int32_t onGoIndex;
   int32_t dataCounter;
+  bool prompt; // true if the input command has its own prompt string
+//  bool distScalarArray; // distinguish between scalar and array variables of same name
 
   static const char* readIndexVarName;
 };

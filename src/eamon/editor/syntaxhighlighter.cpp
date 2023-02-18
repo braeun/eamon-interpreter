@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - syntax highlighter for BASIC                              *
  *                                                                              *
- * modified: 2022-11-15                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -119,7 +119,7 @@ void SyntaxHighlighter::init()
   highlightingRules.append(rule);
 
   singleLineCommentFormat.setForeground(Qt::red);
-  rule.pattern = QRegularExpression(QStringLiteral("REM[^\n]*"));
+  rule.pattern = QRegularExpression(QStringLiteral("REM [^\n]*"));
   rule.format = singleLineCommentFormat;
   highlightingRules.append(rule);
 

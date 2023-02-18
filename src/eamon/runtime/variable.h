@@ -42,6 +42,8 @@ public:
 
   virtual void setAddress(uint32_t a);
 
+  operator bool() { return !name.empty(); }
+
 private:
   std::string name;
   Type type;
@@ -61,7 +63,7 @@ public:
 
   void addVariable(Variable& v);
 
-  const Variable* findVariable(const std::string& name);
+  Variable findVariable(const std::string& name);
 
   uint32_t getNumericBlockSize() const;
 
@@ -69,7 +71,7 @@ public:
 
   void reverse();
 
-  const Variable& operator[](uint32_t index) const;
+  Variable operator[](uint32_t index) const;
 
 private:
   uint32_t addr;

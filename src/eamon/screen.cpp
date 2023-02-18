@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - game screen                                               *
  *                                                                              *
- * modified: 2022-11-19                                                         *
+ * modified: 2023-02-17                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -45,7 +45,6 @@ Screen::Screen(QWidget *parent):QFrame(parent),
   mode(Text),
   punctuation(false)
 {
-  clear(false);
   updateSettings();
 }
 
@@ -139,6 +138,10 @@ void Screen::normal()
 void Screen::updateSettings()
 {
   QSettings settings;
+  ncols = settings.value(SETTING_SCREEN_WIDTH,SETTING_VALUE_SCREEN_WIDTH).toInt();
+  nrows = settings.value(SETTING_SCREEN_HEIGHT,SETTING_VALUE_SCREEN_HEIGHT).toInt();
+  lines.resize(nrows);
+  styles.resize(nrows);
   font.fromString(settings.value(SETTING_SCREEN_FONT,SETTING_VALUE_SCREEN_FONT).toString());
   setFont(font);
   lowerCase = settings.value(SETTING_SCREEN_LOWERCASE,SETTING_VALUE_SCREEN_LOWERCASE).toBool();
@@ -153,6 +156,7 @@ void Screen::updateSettings()
   setMaximumSize(w,h);
   setSizePolicy(QSizePolicy::Policy::Fixed,QSizePolicy::Policy::Fixed);
   resize(w,h);
+  clear(true);
 }
 
 void Screen::setImage(const std::vector<uint8_t> &data)
