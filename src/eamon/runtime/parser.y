@@ -270,10 +270,10 @@ dimlist:
 
 printlist:  /* possible empty */
       | expr { compiler.callPrint(); }
-      | printlist ',' expr { compiler.createPush(" "); compiler.callPrint(); compiler.callPrint(); }
+      | printlist ',' expr { compiler.createPush("\t"); compiler.callPrint(); compiler.callPrint(); }
       | printlist ';' expr { compiler.callPrint(); }
       | stringexpr { compiler.callPrint(); }
-      | printlist ',' stringexpr { compiler.createPush(" "); compiler.callPrint(); compiler.callPrint(); }
+      | printlist ',' stringexpr { compiler.createPush("\t"); compiler.callPrint(); compiler.callPrint(); }
       | printlist ';' stringexpr { compiler.callPrint(); }
       | printlist stringexpr { compiler.callPrint(); }
       | printtab

@@ -65,6 +65,7 @@ void OptionsDialog::commitFields(QSettings &settings)
   settings.setValue(SETTING_SCREEN_TEXT_COLOR,ui->textColorButton->color());
   settings.setValue(SETTING_SCREEN_BKG_COLOR,ui->bkgColorButton->color());
   settings.setValue(SETTING_SCREEN_LINESPACING,ui->linespacingBox->value());
+  settings.setValue(SETTING_SCREEN_TABSIZE,ui->tabSizeBox->value());
   settings.setValue(SETTING_STYLE_STYLE,ui->styleBox->currentText());
   settings.setValue(SETTING_STYLE_PALETTE,ui->paletteBox->currentText());
   QString style = settings.value(SETTING_STYLE_STYLE,SETTING_VALUE_STYLE_STYLE).toString();
@@ -94,6 +95,7 @@ void OptionsDialog::updateFields(const QSettings &settings)
   ui->textColorButton->setColor(settings.value(SETTING_SCREEN_TEXT_COLOR,SETTING_VALUE_SCREEN_TEXT_COLOR).value<QColor>());
   ui->bkgColorButton->setColor(settings.value(SETTING_SCREEN_BKG_COLOR,SETTING_VALUE_SCREEN_BKG_COLOR).value<QColor>());
   ui->linespacingBox->setValue(settings.value(SETTING_SCREEN_LINESPACING,SETTING_VALUE_SCREEN_LINESPACING).toInt());
+  ui->tabSizeBox->setValue(settings.value(SETTING_SCREEN_TABSIZE,SETTING_VALUE_SCREEN_TABSIZE).toInt());
   ui->styleBox->setCurrentText(settings.value(SETTING_STYLE_STYLE,SETTING_VALUE_STYLE_STYLE).toString());
   ui->paletteBox->setCurrentText(settings.value(SETTING_STYLE_PALETTE,SETTING_VALUE_STYLE_PALETTE).toString());
   ui->slowdownBox->setValue(settings.value(SETTING_VM_SLOWDOWN,SETTING_VALUE_VM_SLOWDOWN).toInt());

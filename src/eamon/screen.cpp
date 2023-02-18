@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - game screen                                               *
  *                                                                              *
- * modified: 2023-02-17                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -38,6 +38,7 @@ Screen::Screen(QWidget *parent):QFrame(parent),
   crow(0),
   ccol(0),
   linespacing(0),
+  tabsize(8),
   lines(24),
   styles(24),
   currentStyle(style_normal),
@@ -55,6 +56,32 @@ void Screen::print(const QString &txt)
     if (txt[i] == '\n')
     {
       newline();
+    }
+    else if (txt[i] == '\t')
+    {
+      if (tabsize > 1)
+      {
+        int n = tabsize - ccol % tabsize;
+        if (n == 0) n = tabsize;
+        while (n-- > 0)
+        {
+          lines[crow][ccol] = ' ';
+          styles[crow][ccol] = currentStyle;
+          ccol++;
+          if (ccol == ncols)
+          {
+            newline();
+            break;
+          }
+        }
+      }
+      else
+      {
+        lines[crow][ccol] = ' ';
+        styles[crow][ccol] = currentStyle;
+        ccol++;
+        if (ccol == ncols) newline();
+      }
     }
     else
     {
@@ -149,6 +176,7 @@ void Screen::updateSettings()
   foreground = settings.value(SETTING_SCREEN_TEXT_COLOR,SETTING_VALUE_SCREEN_TEXT_COLOR).value<QColor>();
   background = settings.value(SETTING_SCREEN_BKG_COLOR,SETTING_VALUE_SCREEN_BKG_COLOR).value<QColor>();
   linespacing = settings.value(SETTING_SCREEN_LINESPACING,SETTING_VALUE_SCREEN_LINESPACING).toInt();
+  tabsize = settings.value(SETTING_SCREEN_TABSIZE,SETTING_VALUE_SCREEN_TABSIZE).toInt();
   QFontMetrics fm(font);
   int h = nrows * (fm.height() + linespacing) + 2 * lineWidth() + 2 * border;
   int w = ncols * fm.averageCharWidth() + 2 * lineWidth() + 2 * border;
@@ -177,6 +205,11 @@ void Screen::setMode(Mode m)
 void Screen::setPunctuation(bool flag)
 {
   punctuation = flag;
+}
+
+void Screen::setTabSize(int tab)
+{
+  tabsize = tab;
 }
 
 int Screen::getCursorColumn() const

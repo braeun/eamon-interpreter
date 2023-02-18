@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - game screen                                               *
  *                                                                              *
- * modified: 2022-11-19                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -58,6 +58,8 @@ public:
 
   void setPunctuation(bool flag);
 
+  void setTabSize(int tab);
+
   int getCursorColumn() const;
 
   int getCursorRow() const;
@@ -79,6 +81,7 @@ private:
   int crow;
   int ccol;
   int linespacing;
+  int tabsize;
   std::vector<QString> lines;
   std::vector<std::vector<int>> styles;
   QFont font;
