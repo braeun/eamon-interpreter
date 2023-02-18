@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - virtual machine                                           *
  *                                                                              *
- * modified: 2022-11-17                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -271,12 +271,6 @@ void VM::loop(int depth)
           break;
         case OP_CALL:
           opCall();
-          break;
-        case OP_FOR:
-          opFor();
-          break;
-        case OP_NEXT:
-          opNext();
           break;
         case OP_CLR:
           opClr(op);
@@ -585,41 +579,4 @@ void VM::opCast(uint32_t op)
   else if (t2 == Type::stringType)
     stack.push(stack.pop().getString());
 }
-
-void VM::opFor()
-{
-  fordata fd;
-  fd.var = *cptr++;
-  fd.addr = cptr - executable->getCode();
-  fd.step = stack.pop();
-  fd.limit = stack.pop();
-  size_t index = 0;
-  while (index < forStack.size())
-  {
-    if (forStack[index].var == fd.var) break;
-    index++;
-  }
-  while (index < forStack.size()) forStack.pop_back();
-  forStack.push_back(fd);
-}
-
-void VM::opNext()
-{
-  const fordata& fd = forStack.back();
-  int32_t addr = static_cast<int32_t>(Address::getAddress(fd.var));
-  Value v = mem.getValue(addr,0);
-  v += fd.step;
-  mem.store(v,addr,0);
-  v -= fd.limit;
-  v *= fd.step;
-  if (v.getDouble() > 0)
-  {
-    forStack.pop_back();
-  }
-  else
-  {
-    cptr = executable->getCode() + fd.addr;
-  }
-}
-
 

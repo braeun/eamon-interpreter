@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - virtual machine                                           *
  *                                                                              *
- * modified: 2022-11-17                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -116,13 +116,6 @@ public:
   const std::string& getChainedFile();
 
 private:
-  struct fordata {
-    uint32_t var;
-    uint32_t addr;
-    Value step;
-    Value limit;
-  };
-
   void setupGlobal(uint32_t numSize);
   uint32_t getVariableAddress(const std::string& name);
   void pushArray(uint32_t addr, Type type);
@@ -149,12 +142,9 @@ private:
   void opDup();
   void opSwap();
   void opCast(uint32_t op);
-  void opFor();
-  void opNext();
 
   std::shared_ptr<Executable> executable;
   Stack stack;
-  std::vector<fordata> forStack;
   const uint32_t* cptr;
   uint32_t currentLine;
   bool requestPause;

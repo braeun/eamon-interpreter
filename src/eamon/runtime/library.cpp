@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - VM library                                                *
  *                                                                              *
- * modified: 2022-11-19                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *

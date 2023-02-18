@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - assembler                                                 *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -333,9 +333,6 @@ void Assembler::resolveLabels()
       case OP_CALL:
       case OP_RSZ:
       case OP_CLR:
-      case OP_FOR:
-        cptr++;
-        break;
       case OP_RCLI:
         if (Address::isConstantAddress(*cptr)) /* special case of index array constant access */
         {

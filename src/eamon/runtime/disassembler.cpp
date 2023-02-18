@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - disassembler                                              *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -180,13 +180,6 @@ void Disassembler::disassemble(Executable* executable)
         *os << "call";
         cptr = printLibraryCallData(op,cptr);
         break;
-      case OP_FOR:
-        *os << "for";
-        cptr = printAddr(op,cptr);
-        break;
-      case OP_NEXT:
-        *os << "next";
-        break;
       case OP_CLR:
         *os << "clr";
         printType(op);
@@ -256,7 +249,7 @@ const uint32_t* Disassembler::printPar(Executable* executable, uint32_t op, cons
   return cptr;
 }
 
-const uint32_t* Disassembler::printAddr(uint32_t op, const uint32_t* cptr)
+const uint32_t* Disassembler::printAddr(uint32_t /*op*/, const uint32_t* cptr)
 {
   uint32_t a = *cptr;
   *os << " ";
@@ -272,16 +265,14 @@ void Disassembler::printType(Type type)
   *os << "." << type.getTypeString();
 }
 
-const uint32_t* Disassembler::printEntryData(uint32_t op, const uint32_t *cptr)
+const uint32_t* Disassembler::printEntryData(uint32_t /*op*/, const uint32_t *cptr)
 {
   *os << " " << *cptr;
   cptr++;
-//  *os << " " << *cptr;
-//  cptr++;
   return cptr;
 }
 
-const uint32_t* Disassembler::printLibraryCallData(uint32_t op, const uint32_t* cptr)
+const uint32_t* Disassembler::printLibraryCallData(uint32_t /*op*/, const uint32_t* cptr)
 {
   uint32_t id = *cptr++;
   uint16_t func = id & 0xFFFF;

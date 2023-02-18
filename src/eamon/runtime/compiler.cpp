@@ -121,7 +121,7 @@ void Compiler::createLabel(int lineno, const yy::Parser::location_type &l)
   code->push_back(cop);
 }
 
-void Compiler::createDimVar(std::string name, int ndim, const yy::Parser::location_type &l)
+void Compiler::createDimVar(std::string name, int ndim, const yy::Parser::location_type& /*l*/)
 {
 //  std::cout << name << " " << std::endl;
   name = normalizeVar(name) + arrayIndicator;
@@ -414,10 +414,10 @@ void Compiler::createInputArrayOffset(int32_t ndim, const yy::Parser::location_t
 void Compiler::store(std::string var, const yy::Parser::location_type &l, bool array, bool swap)
 {
   Variable v = findAndCreateVar(var,array,true);
-  store(v,l,array,swap);
+  store(v,l,swap);
 }
 
-void Compiler::store(const Variable& v, const yy::Parser::location_type &l, bool array, bool swap)
+void Compiler::store(const Variable& v, const yy::Parser::location_type &l, bool swap)
 {
   if (v.getType().isArrayType())
   {
@@ -448,7 +448,7 @@ void Compiler::store(const Variable& v, const yy::Parser::location_type &l, bool
     {
       throw yy::Parser::syntax_error(l,"Stack underflow in store");
     }
-    Type t = typeStack->back();
+    typeStack->back();
     typeStack->pop_back();
     COp cop(OP_STO,v.getType());
     cop.setParameter(static_cast<int32_t>(v.getAddress()));
@@ -485,7 +485,7 @@ void Compiler::recall(const Variable& v, const yy::Parser::location_type &l)
   }
 }
 
-void Compiler::callPrint(bool nl)
+void Compiler::callPrint()
 {
   Type t = typeStack->back();
   typeStack->pop_back();
@@ -534,7 +534,7 @@ void Compiler::callPrintF(bool nl)
 
 void Compiler::callPrompt()
 {
-  callPrint(false);
+  callPrint();
   prompt = true;
 }
 
@@ -620,29 +620,69 @@ void Compiler::endGet()
 void Compiler::startFor(std::string var, const yy::Parser::location_type &l)
 {
   var = normalizeVar(var);
-  Compiler::ForLoopData fd;
-  fd.var = var;
-  fd.label = ++internalLabelCounter;
-  forLoop.push_back(fd);
+  if (forLoop.find(var) == forLoop.end())
+  {
+    ForLoopData fd;
+    fd.var = var;
+    fd.varstep = "__" + var + "_step";
+    fd.varlimit = "__" + var + "_limit";
+    forLoop.insert(std::make_pair(var,fd));
+  }
+  forLoop[var].label = ++internalLabelCounter;
+  lastFor = var;
 }
 
-void Compiler::compareFor(const yy::Parser::location_type &l)
+void Compiler::compareFor(std::string var, const yy::Parser::location_type &l)
 {
+  var = normalizeVar(var);
+  ForLoopData fd = forLoop[var];
+  Variable v = findAndCreateVar(fd.varlimit,false,false);
+  store(v,l,true);
 }
 
-void Compiler::stepFor(const yy::Parser::location_type &l)
+void Compiler::stepFor(std::string var, const yy::Parser::location_type &l)
 {
-  Variable v = findAndCreateVar(forLoop.back().var,false,true);
-  forLoop.pop_back();
-  COp op(OP_FOR);
-  op.setParameter(static_cast<int32_t>(v.getAddress()));
-  code->push_back(op);
+  var = normalizeVar(var);
+  ForLoopData fd = forLoop[var];
+  Variable v = findAndCreateVar(fd.varstep,false,true);
+  store(v,l,true);
+  createLabel(fd.label,l);
 }
 
-void Compiler::endFor(std::string v, const yy::Parser::location_type &l)
+void Compiler::endFor(std::string var, const yy::Parser::location_type &l)
 {
-  COp op(OP_NEXT);
-  code->push_back(op);
+  if (var.empty()) var = lastFor;
+  var = normalizeVar(var);
+  if (forLoop.find(var) == forLoop.end())
+  {
+    throw yy::Parser::syntax_error(l,"NEXT without FOR?");
+  }
+  ForLoopData fd = forLoop[var];
+  if (var.empty()) var = fd.var;
+  Variable v = findAndCreateVar(var,false,true);
+  recall(v,l);
+  Variable vinc = findAndCreateVar(fd.varstep,false,true);
+  recall(vinc,l);
+  createOperator("+",l);
+  Type t = typeStack->back();
+  code->push_back(COp(OP_DUP,t));
+  typeStack->push_back(t);
+  store(v,l,true);
+  Variable vlimit = findAndCreateVar(fd.varlimit,false,true);
+  recall(vlimit,l);
+  createOperator("-",l);
+  recall(vinc,l);
+  createOperator("*",l);
+  createPush(0.0);
+  createOperator(">",l);
+  if (typeStack->back() != Type::int32Type)
+  {
+    code->push_back(COp(OP_CAST,Type::int32Type));
+  }
+  COp cop(OP_JZ);
+  cop.setParameter(fd.label);
+  code->push_back(cop);
+  typeStack->pop_back();
 }
 
 void Compiler::startIf(const yy::Parser::location_type &l)
@@ -652,7 +692,7 @@ void Compiler::startIf(const yy::Parser::location_type &l)
   id.endLabel = ++internalLabelCounter;
   if (typeStack->back() != Type::int32Type)
   {
-    Type t = typeStack->back();
+    typeStack->back();
     typeStack->pop_back();
     code->push_back(COp(OP_CAST,Type::int32Type));
     typeStack->push_back(Type::int32Type);
@@ -745,7 +785,7 @@ void Compiler::restore()
 {
   createPush(0);
   Variable readIndexVar = data.globalVariables.findVariable(readIndexVarName);
-  store(readIndexVar,yy::Parser::location_type(),false,true);
+  store(readIndexVar,yy::Parser::location_type(),true);
 }
 
 void Compiler::createData(double v)

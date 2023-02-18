@@ -140,7 +140,7 @@ statement: /* empty */
       | POP { compiler.createPop(); }
       | RETURN { compiler.createReturn(); }
       | PRINT printlist ';'
-      | PRINT printlist { compiler.createPush("\n"); compiler.callPrint(false); }
+      | PRINT printlist { compiler.createPush("\n"); compiler.callPrint(); }
       | PRINT USING stringexpr ';' { compiler.callPrintF(false); }
           printflist { compiler.createPush("\n"); compiler.callPrintF(true); }
       | INPUT prompt { compiler.startInput(); }
@@ -269,13 +269,13 @@ dimlist:
       ;
 
 printlist:  /* possible empty */
-      | expr { compiler.callPrint(false); }
-      | printlist ',' expr { compiler.createPush(" "); compiler.callPrint(false); compiler.callPrint(false); }
-      | printlist ';' expr { compiler.callPrint(false); }
-      | stringexpr { compiler.callPrint(false); }
-      | printlist ',' stringexpr { compiler.createPush(" "); compiler.callPrint(false); compiler.callPrint(false); }
-      | printlist ';' stringexpr { compiler.callPrint(false); }
-      | printlist stringexpr { compiler.callPrint(false); }
+      | expr { compiler.callPrint(); }
+      | printlist ',' expr { compiler.createPush(" "); compiler.callPrint(); compiler.callPrint(); }
+      | printlist ';' expr { compiler.callPrint(); }
+      | stringexpr { compiler.callPrint(); }
+      | printlist ',' stringexpr { compiler.createPush(" "); compiler.callPrint(); compiler.callPrint(); }
+      | printlist ';' stringexpr { compiler.callPrint(); }
+      | printlist stringexpr { compiler.callPrint(); }
       | printtab
       | printlist ',' printtab
       | printlist ';' printtab
@@ -344,8 +344,8 @@ gosublist: INTEGER { compiler.addOnGosub($1,@1); }
   ;
 
 for_loop: FOR SYMBOL EQU expr { compiler.store($2,@2,false,true); compiler.startFor($2,@2); }
-  TO expr { compiler.compareFor(@2); }
-  step_part { compiler.stepFor(@2); }
+  TO expr { compiler.compareFor($2,@2); }
+  step_part { compiler.stepFor($2,@2); }
   ;
 
 step_part: { compiler.createPush(1); } /* can be omitted */

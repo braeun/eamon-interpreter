@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - compiler                                                  *
  *                                                                              *
- * modified: 2023-02-17                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -32,6 +32,7 @@
 #include <string>
 #include <cstddef>
 #include <istream>
+#include <map>
 #include <memory>
 #include <set>
 
@@ -123,7 +124,7 @@ public:
 
   void recall(std::string var, const yy::Parser::location_type &l, bool array);
 
-  void callPrint(bool nl);
+  void callPrint();
 
   void callPrintF(bool nl);
 
@@ -145,9 +146,9 @@ public:
 
   void startFor(std::string v, const yy::Parser::location_type &l);
 
-  void compareFor(const yy::Parser::location_type &l);
+  void compareFor(std::string var, const yy::Parser::location_type &l);
 
-  void stepFor(const yy::Parser::location_type &l);
+  void stepFor(std::string var, const yy::Parser::location_type &l);
 
   void endFor(std::string v, const yy::Parser::location_type &l=yy::Parser::location_type());
 
@@ -187,13 +188,8 @@ private:
   struct ForLoopData
   {
     std::string var;
-//    std::string compareVar;
-//    Code* uplevelCode;
-//    std::vector<Type>* uplevelTypeStack;
-//    Code compareCode;
-//    std::vector<Type> compareTypeStack;
-//    Code stepCode;
-//    std::vector<Type> stepTypeStack;
+    std::string varstep;
+    std::string varlimit;
     int32_t label;
   };
   struct IfData
@@ -225,7 +221,7 @@ private:
   Variable findAndCreateVar(std::string name, bool array, bool normalize);
   Type callFunction(const std::string& fn, const yy::Parser::location_type &l);
   std::string normalizeVar(std::string var);
-  void store(const Variable& var, const yy::Parser::location_type &l, bool array, bool swap);
+  void store(const Variable& var, const yy::Parser::location_type &l, bool swap);
   void recall(const Variable& var, const yy::Parser::location_type &l);
   Type getType(const std::string& var);
 
@@ -241,7 +237,8 @@ private:
   Code initcode;
   std::vector<Type>* typeStack;
   std::vector<Type> toplevelTypeStack;
-  std::vector<ForLoopData> forLoop;
+  std::string lastFor;
+  std::map<std::string,ForLoopData> forLoop;
   std::vector<IfData> ifData;
   std::vector<InputData> inputData;
   std::unique_ptr<UserFunction> userFunction;

@@ -2,7 +2,7 @@
  *                                                                              *
  * EamonInterpreter - opcodes and code object                                   *
  *                                                                              *
- * modified: 2022-11-16                                                         *
+ * modified: 2023-02-18                                                         *
  *                                                                              *
  ********************************************************************************
  * Copyright (C) Harald Braeuning                                               *
@@ -80,8 +80,6 @@
 #define OP_JUMP      51
 #define OP_JNZ       52
 #define OP_CALL      55 /* library call */
-#define OP_FOR       56
-#define OP_NEXT      57
 #define OP_RSZ       64
 #define OP_CLR       65
 #define OP_ERRHDL    66
